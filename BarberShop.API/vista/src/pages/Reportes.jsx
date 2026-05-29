@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { getReporteMensual, getReporteSemanal } from '../services/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 function Reportes() {
   const [modo, setModo] = useState('mensual');
@@ -11,84 +13,94 @@ function Reportes() {
   const [reporte, setReporte] = useState(null);
 
   const buscar = async () => {
-    if (modo === 'mensual') {
-      const res = await getReporteMensual(anio, mes);
-      setReporte(res.data);
-    } else {
-      const res = await getReporteSemanal(inicio, fin);
-      setReporte(res.data);
-    }
+    const res = modo === 'mensual'
+      ? await getReporteMensual(anio, mes)
+      : await getReporteSemanal(inicio, fin);
+    setReporte(res.data);
   };
 
   return (
     <div>
-      <h1 style={{ color: '#f59e0b', marginBottom: '2rem' }}>📈 Reportes</h1>
+      <div className="page-header">
+        <h1>Reportes</h1>
+      </div>
 
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
+      <div className="card" style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'end', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Tipo</label>
-            <select value={modo} onChange={e => setModo(e.target.value)} style={inputStyle}>
+            <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Tipo</label>
+            <select value={modo} onChange={e => setModo(e.target.value)} style={{ width: 'auto' }}>
               <option value="mensual">Mensual</option>
               <option value="semanal">Semanal</option>
             </select>
           </div>
           {modo === 'mensual' ? <>
             <div>
-              <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Año</label>
-              <input type="number" value={anio} onChange={e => setAnio(e.target.value)} style={inputStyle} />
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Año</label>
+              <input type="number" value={anio} onChange={e => setAnio(e.target.value)} style={{ width: '100px' }} />
             </div>
             <div>
-              <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Mes</label>
-              <select value={mes} onChange={e => setMes(e.target.value)} style={inputStyle}>
-                {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => (
-                  <option key={i+1} value={i+1}>{m}</option>
-                ))}
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Mes</label>
+              <select value={mes} onChange={e => setMes(e.target.value)} style={{ width: 'auto' }}>
+                {meses.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
               </select>
             </div>
           </> : <>
             <div>
-              <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Inicio</label>
-              <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Inicio</label>
+              <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={{ width: 'auto' }} />
             </div>
             <div>
-              <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Fin</label>
-              <input type="date" value={fin} onChange={e => setFin(e.target.value)} style={inputStyle} />
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Fin</label>
+              <input type="date" value={fin} onChange={e => setFin(e.target.value)} style={{ width: 'auto' }} />
             </div>
           </>}
-          <button onClick={buscar} style={btnStyle}>Generar Reporte</button>
+          <button className="btn-primary" onClick={buscar}>Generar</button>
         </div>
       </div>
 
       {reporte && <>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-          <Tarjeta titulo="Total Ventas" valor={reporte.totalVentas} color="#3b82f6" />
-          <Tarjeta titulo="Total Ingresos" valor={`$${reporte.totalIngresos?.toFixed(2)}`} color="#10b981" />
-          <Tarjeta titulo="Promedio por Venta" valor={`$${(reporte.totalIngresos / reporte.totalVentas || 0).toFixed(2)}`} color="#f59e0b" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="stat-card" style={{ borderTop: '2px solid var(--gold)' }}>
+            <p className="stat-label">Total Ingresos</p>
+            <p className="stat-value stat-accent">${reporte.totalIngresos?.toFixed(2)}</p>
+          </div>
+          <div className="stat-card" style={{ borderTop: '2px solid #6aaed6' }}>
+            <p className="stat-label">Total Ventas</p>
+            <p className="stat-value">{reporte.totalVentas}</p>
+          </div>
+          <div className="stat-card" style={{ borderTop: '2px solid var(--success-text)' }}>
+            <p className="stat-label">Promedio por Venta</p>
+            <p className="stat-value">${(reporte.totalIngresos / reporte.totalVentas || 0).toFixed(2)}</p>
+          </div>
         </div>
 
-        <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Ingresos por Día</h3>
-          <ResponsiveContainer width="100%" height={250}>
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Ingresos por Día
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={reporte.porDia}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey={modo === 'mensual' ? 'dia' : 'fecha'} stroke="#aaa" />
-              <YAxis stroke="#aaa" />
-              <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-              <Line type="monotone" dataKey="totalIngresos" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
+              <XAxis dataKey={modo === 'mensual' ? 'dia' : 'fecha'} stroke="#333" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="#333" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '8px', fontSize: '0.85rem' }} cursor={{ stroke: '#c9a84c33' }} />
+              <Line type="monotone" dataKey="totalIngresos" stroke="#c9a84c" strokeWidth={2} dot={{ fill: '#c9a84c', r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Ingresos por Barbero</h3>
+        <div className="card">
+          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Ingresos por Barbero
+          </h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={reporte.porBarbero}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="barbero" stroke="#aaa" />
-              <YAxis stroke="#aaa" />
-              <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-              <Bar dataKey="totalIngresos" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            <BarChart data={reporte.porBarbero} barSize={40}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
+              <XAxis dataKey="barbero" stroke="#333" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="#333" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '8px', fontSize: '0.85rem' }} cursor={{ fill: '#ffffff05' }} />
+              <Bar dataKey="totalIngresos" fill="#6aaed6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -96,17 +108,5 @@ function Reportes() {
     </div>
   );
 }
-
-function Tarjeta({ titulo, valor, color }) {
-  return (
-    <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', borderLeft: `4px solid ${color}` }}>
-      <p style={{ color: '#aaa', margin: 0, fontSize: '0.9rem' }}>{titulo}</p>
-      <h2 style={{ color: '#fff', margin: '0.5rem 0 0', fontSize: '1.8rem' }}>{valor}</h2>
-    </div>
-  );
-}
-
-const inputStyle = { width: '100%', padding: '0.6rem', backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', color: '#fff', marginTop: '0.3rem' };
-const btnStyle = { padding: '0.6rem 1.2rem', backgroundColor: '#f59e0b', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 };
 
 export default Reportes;
