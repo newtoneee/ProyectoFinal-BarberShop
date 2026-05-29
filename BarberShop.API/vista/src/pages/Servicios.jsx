@@ -6,6 +6,7 @@ function Servicios() {
   const [categorias, setCategorias] = useState([]);
   const [form, setForm] = useState({ nombre: '', precio: '', duracionMinutos: 30, categoriaId: '' });
   const [editando, setEditando] = useState(null);
+  const [mostrarForm, setMostrarForm] = useState(false);
 
   useEffect(() => { cargar(); }, []);
 
@@ -22,70 +23,85 @@ function Servicios() {
     else await createServicio(datos);
     setForm({ nombre: '', precio: '', duracionMinutos: 30, categoriaId: categorias[0]?.id || '' });
     setEditando(null);
+    setMostrarForm(false);
     cargar();
   };
 
   const editar = (s) => {
     setEditando(s);
     setForm({ nombre: s.nombre, precio: s.precio, duracionMinutos: s.duracionMinutos, categoriaId: s.categoriaId });
+    setMostrarForm(true);
   };
 
   const eliminar = async (id) => {
-    if (confirm('¿Eliminar servicio?')) { await deleteServicio(id); cargar(); }
+    if (confirm('¿Eliminar este servicio?')) { await deleteServicio(id); cargar(); }
   };
 
   return (
     <div>
-      <h1 style={{ color: '#f59e0b', marginBottom: '2rem' }}>💈 Servicios</h1>
-
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>{editando ? 'Editar Servicio' : 'Nuevo Servicio'}</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Nombre</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} style={inputStyle} placeholder="Nombre del servicio" />
-          </div>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Precio $</label>
-            <input type="number" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Duración (min)</label>
-            <input type="number" value={form.duracionMinutos} onChange={e => setForm({ ...form, duracionMinutos: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Categoría</label>
-            <select value={form.categoriaId} onChange={e => setForm({ ...form, categoriaId: e.target.value })} style={inputStyle}>
-              {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </div>
-          <button onClick={guardar} style={btnStyle}>{editando ? 'Actualizar' : 'Agregar'}</button>
-        </div>
+      <div className="page-header">
+        <h1>Servicios</h1>
+        <button className="btn-primary" onClick={() => { setMostrarForm(!mostrarForm); setEditando(null); }}>
+          {mostrarForm ? 'Cancelar' : '+ Agregar Servicio'}
+        </button>
       </div>
 
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {mostrarForm && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {editando ? 'Editar Servicio' : 'Nuevo Servicio'}
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Nombre</label>
+              <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre del servicio" />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Precio $</label>
+              <input type="number" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Duración (min)</label>
+              <input type="number" value={form.duracionMinutos} onChange={e => setForm({ ...form, duracionMinutos: e.target.value })} />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Categoría</label>
+              <select value={form.categoriaId} onChange={e => setForm({ ...form, categoriaId: e.target.value })}>
+                {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
+            <button className="btn-primary" onClick={guardar} style={{ marginTop: '0.3rem' }}>
+              {editando ? 'Actualizar' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <table>
           <thead>
-            <tr style={{ backgroundColor: '#2a2a2a' }}>
-              {['Nombre', 'Precio', 'Duración', 'Categoría', 'Acciones'].map(h => (
-                <th key={h} style={{ padding: '1rem', color: '#aaa', textAlign: 'left', fontWeight: 500 }}>{h}</th>
-              ))}
+            <tr>
+              <th>Nombre</th>
+              <th>Precio</th>
+              <th>Duración</th>
+              <th>Categoría</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {servicios.map(s => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #2a2a2a' }}>
-                <td style={{ padding: '1rem', color: '#fff' }}>{s.nombre}</td>
-                <td style={{ padding: '1rem', color: '#10b981' }}>${s.precio}</td>
-                <td style={{ padding: '1rem', color: '#aaa' }}>{s.duracionMinutos} min</td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ backgroundColor: s.categoria?.color || '#333', padding: '0.2rem 0.6rem', borderRadius: '999px', color: '#fff', fontSize: '0.8rem' }}>
-                    {s.categoria?.nombre}
-                  </span>
+              <tr key={s.id}>
+                <td style={{ fontWeight: 500 }}>{s.nombre}</td>
+                <td style={{ color: 'var(--gold)' }}>${s.precio}</td>
+                <td style={{ color: 'var(--text-secondary)' }}>{s.duracionMinutos} min</td>
+                <td>
+                  <span className="badge-blue">{s.categoria?.nombre}</span>
                 </td>
-                <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => editar(s)} style={{ ...btnStyle, backgroundColor: '#3b82f6', padding: '0.4rem 0.8rem' }}>Editar</button>
-                  <button onClick={() => eliminar(s.id)} style={{ ...btnStyle, backgroundColor: '#ef4444', padding: '0.4rem 0.8rem' }}>Eliminar</button>
+                <td>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn-secondary" onClick={() => editar(s)} style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>Editar</button>
+                    <button className="btn-danger" onClick={() => eliminar(s.id)}>Eliminar</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -95,8 +111,5 @@ function Servicios() {
     </div>
   );
 }
-
-const inputStyle = { width: '100%', padding: '0.6rem', backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', color: '#fff', marginTop: '0.3rem' };
-const btnStyle = { padding: '0.6rem 1.2rem', backgroundColor: '#f59e0b', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 };
 
 export default Servicios;
