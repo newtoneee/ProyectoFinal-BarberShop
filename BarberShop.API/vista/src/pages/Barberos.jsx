@@ -5,6 +5,7 @@ function Barberos() {
   const [barberos, setBarberos] = useState([]);
   const [form, setForm] = useState({ nombre: '', telefono: '', porcentajeComision: 50 });
   const [editando, setEditando] = useState(null);
+  const [mostrarForm, setMostrarForm] = useState(false);
 
   useEffect(() => { cargar(); }, []);
 
@@ -21,67 +22,77 @@ function Barberos() {
     }
     setForm({ nombre: '', telefono: '', porcentajeComision: 50 });
     setEditando(null);
+    setMostrarForm(false);
     cargar();
   };
 
   const editar = (b) => {
     setEditando(b);
     setForm({ nombre: b.nombre, telefono: b.telefono, porcentajeComision: b.porcentajeComision });
+    setMostrarForm(true);
   };
 
   const eliminar = async (id) => {
-    if (confirm('¿Eliminar barbero?')) {
-      await deleteBarbero(id);
-      cargar();
-    }
+    if (confirm('¿Eliminar este barbero?')) { await deleteBarbero(id); cargar(); }
   };
 
   return (
     <div>
-      <h1 style={{ color: '#f59e0b', marginBottom: '2rem' }}>👤 Barberos</h1>
-
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>{editando ? 'Editar Barbero' : 'Nuevo Barbero'}</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Nombre</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-              style={inputStyle} placeholder="Nombre completo" />
-          </div>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Teléfono</label>
-            <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })}
-              style={inputStyle} placeholder="6621234567" />
-          </div>
-          <div>
-            <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Comisión %</label>
-            <input type="number" value={form.porcentajeComision} onChange={e => setForm({ ...form, porcentajeComision: parseFloat(e.target.value) })}
-              style={inputStyle} />
-          </div>
-          <button onClick={guardar} style={btnStyle}>
-            {editando ? 'Actualizar' : 'Agregar'}
-          </button>
-        </div>
+      <div className="page-header">
+        <h1>Barberos</h1>
+        <button className="btn-primary" onClick={() => { setMostrarForm(!mostrarForm); setEditando(null); setForm({ nombre: '', telefono: '', porcentajeComision: 50 }); }}>
+          {mostrarForm ? 'Cancelar' : '+ Agregar Barbero'}
+        </button>
       </div>
 
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {mostrarForm && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {editando ? 'Editar Barbero' : 'Nuevo Barbero'}
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Nombre</label>
+              <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre completo" />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Teléfono</label>
+              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} placeholder="6621234567" />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Comisión %</label>
+              <input type="number" value={form.porcentajeComision} onChange={e => setForm({ ...form, porcentajeComision: parseFloat(e.target.value) })} />
+            </div>
+            <button className="btn-primary" onClick={guardar} style={{ marginTop: '0.3rem', whiteSpace: 'nowrap' }}>
+              {editando ? 'Actualizar' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <table>
           <thead>
-            <tr style={{ backgroundColor: '#2a2a2a' }}>
-              {['Nombre', 'Teléfono', 'Comisión', 'Acciones'].map(h => (
-                <th key={h} style={{ padding: '1rem', color: '#aaa', textAlign: 'left', fontWeight: 500 }}>{h}</th>
-              ))}
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Comisión</th>
+              <th>Ingreso</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {barberos.map(b => (
-              <tr key={b.id} style={{ borderBottom: '1px solid #2a2a2a' }}>
-                <td style={{ padding: '1rem', color: '#fff' }}>{b.nombre}</td>
-                <td style={{ padding: '1rem', color: '#aaa' }}>{b.telefono}</td>
-                <td style={{ padding: '1rem', color: '#10b981' }}>{b.porcentajeComision}%</td>
-                <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => editar(b)} style={{ ...btnStyle, backgroundColor: '#3b82f6', padding: '0.4rem 0.8rem' }}>Editar</button>
-                  <button onClick={() => eliminar(b.id)} style={{ ...btnStyle, backgroundColor: '#ef4444', padding: '0.4rem 0.8rem' }}>Eliminar</button>
+              <tr key={b.id}>
+                <td style={{ fontWeight: 500 }}>{b.nombre}</td>
+                <td style={{ color: 'var(--text-secondary)' }}>{b.telefono}</td>
+                <td><span className="badge-blue">{b.porcentajeComision}%</span></td>
+                <td style={{ color: 'var(--text-secondary)' }}>{new Date(b.fechaIngreso).toLocaleDateString('es-MX')}</td>
+                <td>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn-secondary" onClick={() => editar(b)} style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>Editar</button>
+                    <button className="btn-danger" onClick={() => eliminar(b.id)}>Eliminar</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -91,8 +102,5 @@ function Barberos() {
     </div>
   );
 }
-
-const inputStyle = { width: '100%', padding: '0.6rem', backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', color: '#fff', marginTop: '0.3rem' };
-const btnStyle = { padding: '0.6rem 1.2rem', backgroundColor: '#f59e0b', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 };
 
 export default Barberos;
