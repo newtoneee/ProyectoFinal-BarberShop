@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+
+# React
+vista/node_modules/
+vista/dist/
+
+# Ambiente
+.env
+*.env
+
+# SQL
+*.mdf
+*.ldf
