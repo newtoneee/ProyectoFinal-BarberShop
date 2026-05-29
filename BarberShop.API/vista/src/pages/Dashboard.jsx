@@ -12,9 +12,7 @@ function Dashboard() {
     const cargarDatos = async () => {
       try {
         const [vH, bS, barb] = await Promise.all([
-          getVentasHoy(),
-          getProductosBajoStock(),
-          getBarberos()
+          getVentasHoy(), getProductosBajoStock(), getBarberos()
         ]);
         setVentasHoy(vH.data);
         setBajoStock(bS.data);
@@ -29,69 +27,84 @@ function Dashboard() {
   }, []);
 
   const totalHoy = ventasHoy.reduce((sum, v) => sum + v.total, 0);
-
   const ventasPorBarbero = barberos.map(b => ({
     nombre: b.nombre.split(' ')[0],
-    ventas: ventasHoy.filter(v => v.barberoId === b.id).reduce((s, v) => s + v.total, 0)
+    ingresos: ventasHoy.filter(v => v.barberoId === b.id).reduce((s, v) => s + v.total, 0)
   }));
 
-  if (loading) return <p style={{ color: '#aaa' }}>Cargando...</p>;
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+      <p style={{ color: 'var(--text-muted)', letterSpacing: '0.1em', fontSize: '0.85rem' }}>CARGANDO...</p>
+    </div>
+  );
 
   return (
     <div>
-      <h1 style={{ color: '#f59e0b', marginBottom: '2rem' }}>📊 Dashboard</h1>
-
-      {/* Tarjetas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-        <Tarjeta titulo="💰 Ingresos Hoy" valor={`$${totalHoy.toFixed(2)}`} color="#10b981" />
-        <Tarjeta titulo="🧾 Ventas Hoy" valor={ventasHoy.length} color="#3b82f6" />
-        <Tarjeta titulo="⚠️ Bajo Stock" valor={bajoStock.length} color="#ef4444" />
+      <div className="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
+            {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
       </div>
 
-      {/* Gráfica */}
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Ventas por Barbero Hoy</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={ventasPorBarbero}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="nombre" stroke="#aaa" />
-            <YAxis stroke="#aaa" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-            <Bar dataKey="ventas" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="stat-card" style={{ borderTop: '2px solid var(--gold)' }}>
+          <p className="stat-label">Ingresos Hoy</p>
+          <p className="stat-value stat-accent">${totalHoy.toFixed(2)}</p>
+        </div>
+        <div className="stat-card" style={{ borderTop: '2px solid #6aaed6' }}>
+          <p className="stat-label">Ventas Realizadas</p>
+          <p className="stat-value">{ventasHoy.length}</p>
+        </div>
+        <div className="stat-card" style={{ borderTop: '2px solid var(--danger-text)' }}>
+          <p className="stat-label">Alertas de Stock</p>
+          <p className="stat-value" style={{ color: bajoStock.length > 0 ? 'var(--danger-text)' : 'var(--text-primary)' }}>
+            {bajoStock.length}
+          </p>
+        </div>
+      </div>
+
+      {/* Grafica */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Ingresos por Barbero — Hoy
+        </h3>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={ventasPorBarbero} barSize={40}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
+            <XAxis dataKey="nombre" stroke="#444" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis stroke="#444" tick={{ fill: '#666', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '8px', fontSize: '0.85rem' }}
+              cursor={{ fill: '#ffffff08' }}
+            />
+            <Bar dataKey="ingresos" fill="#c9a84c" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Alertas bajo stock */}
+      {/* Bajo stock */}
       {bajoStock.length > 0 && (
-        <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', padding: '1.5rem' }}>
-          <h3 style={{ color: '#ef4444', marginBottom: '1rem' }}>⚠️ Productos con Bajo Stock</h3>
+        <div className="card" style={{ borderLeft: '3px solid var(--danger-text)' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Productos con Stock Bajo
+          </h3>
           {bajoStock.map(p => (
             <div key={p.id} style={{
-              display: 'flex', justifyContent: 'space-between',
-              padding: '0.75rem', backgroundColor: '#2a1a1a',
-              borderRadius: '8px', marginBottom: '0.5rem'
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '0.75rem 0', borderBottom: '1px solid var(--border)'
             }}>
-              <span style={{ color: '#fff' }}>{p.nombre}</span>
-              <span style={{ color: '#ef4444' }}>Stock: {p.stock} / Mínimo: {p.stockMinimo}</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>{p.nombre}</span>
+              <span style={{ color: 'var(--danger-text)', fontSize: '0.85rem' }}>
+                {p.stock} unidades — mínimo {p.stockMinimo}
+              </span>
             </div>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function Tarjeta({ titulo, valor, color }) {
-  return (
-    <div style={{
-      backgroundColor: '#1a1a1a',
-      borderRadius: '12px',
-      padding: '1.5rem',
-      borderLeft: `4px solid ${color}`
-    }}>
-      <p style={{ color: '#aaa', margin: 0, fontSize: '0.9rem' }}>{titulo}</p>
-      <h2 style={{ color: '#fff', margin: '0.5rem 0 0', fontSize: '2rem' }}>{valor}</h2>
     </div>
   );
 }
