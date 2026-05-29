@@ -6,12 +6,9 @@ function Ventas() {
   const [ventas, setVentas] = useState([]);
   const [filtro, setFiltro] = useState('');
 
-  useEffect(() => { cargar(); }, []);
-
-  const cargar = async () => {
-    const res = await getVentas();
-    setVentas(res.data);
-  };
+  useEffect(() => {
+    getVentas().then(res => setVentas(res.data));
+  }, []);
 
   const ventasFiltradas = ventas.filter(v =>
     v.barbero?.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
@@ -19,52 +16,62 @@ function Ventas() {
     v.metodoPago.toLowerCase().includes(filtro.toLowerCase())
   );
 
+  const total = ventasFiltradas.reduce((sum, v) => sum + v.total, 0);
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ color: '#f59e0b', margin: 0 }}>🧾 Historial de Ventas</h1>
-        <Link to="/nueva-venta" style={{ ...btnStyle, textDecoration: 'none' }}>+ Nueva Venta</Link>
+      <div className="page-header">
+        <h1>Historial de Ventas</h1>
+        <Link to="/nueva-venta" className="btn-primary" style={{ textDecoration: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.9rem' }}>
+          + Nueva Venta
+        </Link>
       </div>
 
-      <input value={filtro} onChange={e => setFiltro(e.target.value)}
-        placeholder="Buscar por barbero, cliente o método de pago..."
-        style={{ ...inputStyle, marginBottom: '1.5rem', width: '100%' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
+        <input
+          value={filtro}
+          onChange={e => setFiltro(e.target.value)}
+          placeholder="Buscar por barbero, cliente o método de pago..."
+          style={{ maxWidth: '400px' }}
+        />
+        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+          {ventasFiltradas.length} ventas — <span style={{ color: 'var(--gold)' }}>${total.toFixed(2)}</span>
+        </div>
+      </div>
 
-      <div style={{ backgroundColor: '#1a1a1a', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <table>
           <thead>
-            <tr style={{ backgroundColor: '#2a2a2a' }}>
-              {['#', 'Fecha', 'Cliente', 'Barbero', 'Método Pago', 'Total'].map(h => (
-                <th key={h} style={{ padding: '1rem', color: '#aaa', textAlign: 'left', fontWeight: 500 }}>{h}</th>
-              ))}
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Barbero</th>
+              <th>Método</th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody>
             {ventasFiltradas.map(v => (
-              <tr key={v.id} style={{ borderBottom: '1px solid #2a2a2a' }}>
-                <td style={{ padding: '1rem', color: '#666' }}>#{v.id}</td>
-                <td style={{ padding: '1rem', color: '#aaa' }}>{new Date(v.fecha).toLocaleDateString('es-MX')}</td>
-                <td style={{ padding: '1rem', color: '#fff' }}>{v.nombreCliente || 'Sin nombre'}</td>
-                <td style={{ padding: '1rem', color: '#fff' }}>{v.barbero?.nombre}</td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ backgroundColor: '#2a2a2a', padding: '0.2rem 0.6rem', borderRadius: '999px', color: '#aaa', fontSize: '0.8rem' }}>
-                    {v.metodoPago}
-                  </span>
-                </td>
-                <td style={{ padding: '1rem', color: '#10b981', fontWeight: 600 }}>${v.total.toFixed(2)}</td>
+              <tr key={v.id}>
+                <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>{v.id}</td>
+                <td style={{ color: 'var(--text-secondary)' }}>{new Date(v.fecha).toLocaleDateString('es-MX')}</td>
+                <td>{v.nombreCliente || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
+                <td style={{ fontWeight: 500 }}>{v.barbero?.nombre}</td>
+                <td><span className="badge-blue">{v.metodoPago}</span></td>
+                <td style={{ color: 'var(--gold)', fontWeight: 600 }}>${v.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {ventasFiltradas.length === 0 && (
-          <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>No hay ventas registradas</p>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem', fontSize: '0.9rem' }}>
+            No hay ventas registradas
+          </p>
         )}
       </div>
     </div>
   );
 }
-
-const inputStyle = { padding: '0.6rem 1rem', backgroundColor: '#1a1a1a', border: '1px solid #3a3a3a', borderRadius: '8px', color: '#fff' };
-const btnStyle = { padding: '0.6rem 1.2rem', backgroundColor: '#f59e0b', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 };
 
 export default Ventas;
